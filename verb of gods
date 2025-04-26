@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>BPM 리버브 계산기</title>
+  <style>
+    * {
+      margin: 0; 
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(to bottom right, #1f1f1f, #2a2a2a);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .calculator-container {
+      background-color: #3c3c3c; /* 다크 그레이 */
+      width: 320px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    .input-group label {
+      display: block;
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+      background-color: #5a5a5a;
+      color: #fff;
+      transition: background-color 0.2s ease;
+    }
+    .input-group input:focus,
+    .input-group select:focus {
+      background-color: #6b6b6b;
+    }
+    .calc-button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #f08c2d; /* 애플 계산기 느낌의 오렌지 */
+      color: #fff;
+      transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+    .calc-button:hover {
+      background-color: #ffa140;
+    }
+    .calc-button:active {
+      transform: scale(0.98);
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #666;
+      margin: 20px 0;
+    }
+    #result {
+      min-height: 60px;
+      font-size: 1rem;
+      line-height: 1.5;
+      background-color: #2f2f2f;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 20px;
+    }
+    /* 가이드 영역 */
+    .guide {
+      font-size: 0.8rem;
+      line-height: 1.4;
+      background-color: #2f2f2f;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .guide h2 {
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+    .guide ul {
+      margin-left: 20px;
+      margin-bottom: 10px;
+    }
+    .guide li {
+      margin-bottom: 5px;
+    }
+    /* 색상 라벨 예시 */
+    .short-label {
+      color: #ffa140; /* 오렌지 */
+    }
+    .medium-label {
+      color: #40ffb5; /* 녹청색 */
+    }
+    .long-label {
+      color: #1cb5e0; /* 파랑 */
+    }
+    .vlong-label {
+      color: #ff40ff; /* 핫핑크/보라 */
+    }
+    /* 팁 섹션 */
+    .tip {
+      font-size: 0.75rem;
+      line-height: 1.3;
+      background-color: #2f2f2f;
+      color: #ffd;
+      padding: 8px;
+      border-radius: 8px;
+      margin-top: 10px;
+      border: 1px solid #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h1>BPM 리버브 계산기</h1>
+    
+    <!-- BPM 입력 -->
+    <div class="input-group">
+      <label for="bpm">BPM (템포)</label>
+      <input type="number" id="bpm" value="120" min="1" />
+    </div>
+
+    <!-- 프리딜레이 선택 -->
+    <div class="input-group">
+      <label for="predelayNote">프리딜레이 (Pre-Delay)</label>
+      <select id="predelayNote">
+        <!-- [짧게] -->
+        <option style="color:#ffa140;" value="0.0625">[짧게] 1/64 박</option>
+        <option style="color:#ffa140;" value="0.125">[짧게] 1/32 박</option>
+        <option style="color:#ffa140;" value="0.25">[짧게] 1/16 박</option>
+        <option style="color:#ffa140;" value="0.33">[짧게] 1/16 박 (3연음)</option>
+        
+        <!-- [중간] -->
+        <option style="color:#40ffb5;" value="0.5">[중간] 1/8 박</option>
+        <option style="color:#40ffb5;" value="0.75">[중간] 점(1/8) 박</option>
+        
+        <!-- [길게] -->
+        <option style="color:#1cb5e0;" value="1">[길게] 1/4 박</option>
+        <option style="color:#1cb5e0;" value="1.5">[길게] 점(1/4) 박</option>
+      </select>
+    </div>
+
+    <!-- 디케이 선택 -->
+    <div class="input-group">
+      <label for="decayNote">디케이 (Decay)</label>
+      <select id="decayNote">
+        <!-- [짧게] -->
+        <option style="color:#ffa140;" value="2">[짧게] 2박 (반 마디)</option>
+        <option style="color:#ffa140;" value="3">[짧게] 3박 (3/4 마디)</option>
+        
+        <!-- [중간] -->
+        <option style="color:#40ffb5;" value="4" selected>[중간] 4박 (한 마디)</option>
+        
+        <!-- [길게] -->
+        <option style="color:#1cb5e0;" value="6">[길게] 6박 (1.5마디)</option>
+        <option style="color:#1cb5e0;" value="8">[길게] 8박 (두 마디)</option>
+        
+        <!-- [아주 길게] -->
+        <option style="color:#ff40ff;" value="16">[아주 길게] 16박 (네 마디)</option>
+      </select>
+    </div>
+
+    <!-- 계산하기 버튼 -->
+    <button class="calc-button" onclick="calculate()">계산하기</button>
+    
+    <hr>
+
+    <!-- 결과 출력 -->
+    <div id="result"></div>
+
+    <!-- 가이드라인 -->
+    <div class="guide">
+      <h2>간단 가이드라인</h2>
+
+      <strong>프리딜레이 (Pre-Delay)</strong>
+      <ul>
+        <li><span class="short-label">[짧게]</span> (1/64 ~ 1/16 박): 악기/보컬에 밀착된 느낌, 타이트함</li>
+        <li><span class="medium-label">[중간]</span> (1/8 박 전후): 보컬 작업에 흔히 사용, 선명도 & 공간감 균형</li>
+        <li><span class="long-label">[길게]</span> (1/4 박 이상): 원소리와 리버브 간 분리가 커져, 리듬감 강조나 FX 효과</li>
+      </ul>
+
+      <strong>디케이 (Decay)</strong>
+      <ul>
+        <li><span class="short-label">[짧게]</span> (2~3박): 리버브 꼬리가 빠르게 끝나, 타이트한 믹스에 적합</li>
+        <li><span class="medium-label">[중간]</span> (4박, 1마디): 보컬 등에 가장 많이 쓰이는 표준 리버브 길이</li>
+        <li><span class="long-label">[길게]</span> (6~8박): 발라드나 서정적 분위기, 공간감 부각</li>
+        <li><span class="vlong-label">[아주 길게]</span> (16박 이상): 극적인 연출, 애트모스피어/신스 패드 등에 활용</li>
+      </ul>
+    </div>
+
+    <!-- 팁 섹션 -->
+    <div class="tip">
+      <strong>TIP</strong>:  
+      계산 결과값이 낄끔해도, 음악에 맞춰 더 다양한 리버브 세팅을 찾고 싶다면,<br>
+      <em>BPM을 2배(×2)나 절반(÷2)</em>으로 입력해보세요.<br>
+      이렇게 하면 더욱 <br>
+      <strong>다양한 프리딜레이/디케이 값</strong>을 발견할 수 있습니다.
+    </div>
+  </div>
+
+  <script>
+    function calculate() {
+      const bpm = parseFloat(document.getElementById('bpm').value);
+      const predelayFactor = parseFloat(document.getElementById('predelayNote').value);
+      const decayFactor = parseFloat(document.getElementById('decayNote').value);
+      
+      if (!bpm || bpm <= 0) {
+        alert("유효한 BPM 값을 입력하세요.");
+        return;
+      }
+      
+      // 1/4 노트(한 박자) 길이(ms)
+      const quarterNoteMs = 60000 / bpm;
+      
+      // 프리딜레이 계산 (ms)
+      const preDelayMs = quarterNoteMs * predelayFactor;
+      
+      // 디케이 계산 (초) - decayFactor 값은 '몇 박' 의미
+      const decaySeconds = (quarterNoteMs * decayFactor) / 1000;
+      
+      // 결과 출력
+      const resultArea = document.getElementById('result');
+      resultArea.innerHTML =
+        `프리딜레이: <strong>${preDelayMs.toFixed(1)} ms</strong><br>` +
+        `디케이: <strong>${decaySeconds.toFixed(2)} s</strong> (약 ${(decaySeconds * 1000).toFixed(0)} ms)`;
+    }
+  </script>
+
+</body>
+</html>
